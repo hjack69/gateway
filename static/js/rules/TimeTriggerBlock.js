@@ -1,4 +1,5 @@
 const RulePartBlock = require('./RulePartBlock');
+var cron = require('node-cron');
 
 /**
  * An element representing a time-based trigger
@@ -10,35 +11,29 @@ const RulePartBlock = require('./RulePartBlock');
  */
 function TimeTriggerBlock(ruleArea, onPresentationChange, onRuleUpdate) {
   RulePartBlock.call(this, ruleArea, onPresentationChange, onRuleUpdate,
-                     'Time of day', '/optimized-images/rule-icons/clock.svg');
+                     'Time of Day', '/optimized-images/rule-icons/clock.svg');
 
   const rulePartInfo = this.elt.querySelector('.rule-part-info');
 
-  this.timeInput = document.createElement('input');
-  this.timeInput.type = 'time';
-  const date = new Date();
-  const hours = TimeTriggerBlock.leftPad(date.getHours());
-  const minutes = TimeTriggerBlock.leftPad(date.getMinutes());
-  this.timeInput.value = `${hours}:${minutes}`;
-  this.timeInput.classList.add('time-input');
-
-  // Disable dragging started by clicking time input
-  this.timeInput.addEventListener('mousedown', (e) => {
+  this.cronInput = document.createElement('input');
+  this.cronInput.type = 'text';
+  this.cronInput.classList.add('time-input');
+  // Disable dragging started by clicking interval input
+  this.cronInput.addEventListener('mousedown', (e) => {
     e.stopPropagation();
   });
-  this.timeInput.addEventListener('touchstart', (e) => {
+  this.cronInput.addEventListener('touchstart', (e) => {
     e.stopPropagation();
   });
-
-  this.timeInput.addEventListener('change', () => {
+  // Set data on change
+  this.cronInput.addEventListener('change', () => {
     this.rulePart = {trigger: {
       type: 'TimeTrigger',
-      time: TimeTriggerBlock.localToUTC(this.timeInput.value),
+      schedule: TimeTriggerBlock.verifyCronTime(this.cronInput.value),
     }};
     this.onRuleChange();
   });
-
-  rulePartInfo.appendChild(this.timeInput);
+  rulePartInfo.appendChild(this.cronInput);
 }
 
 TimeTriggerBlock.prototype = Object.create(RulePartBlock.prototype);
@@ -53,7 +48,7 @@ TimeTriggerBlock.prototype.setRulePart = function(rulePart) {
     this.role = 'trigger';
     this.rulePartBlock.classList.add('trigger');
 
-    this.timeInput.value = TimeTriggerBlock.utcToLocal(rulePart.trigger.time);
+    this.cronInput.value = "* * * * * *";
   }
 
   if (rulePart.effect) {
@@ -69,7 +64,7 @@ TimeTriggerBlock.prototype.onUp = function(clientX, clientY) {
   if (this.role === 'trigger') {
     this.rulePart = {trigger: {
       type: 'TimeTrigger',
-      time: TimeTriggerBlock.localToUTC(this.timeInput.value),
+      schedule: TimeTriggerBlock.verifyCronTime(this.cronInput.value),
     }};
     this.onRuleChange();
   }
@@ -84,25 +79,33 @@ TimeTriggerBlock.leftPad = function(n) {
  * @param {String} utcTime - formatted HH:MM
  * @return {String}
  */
-TimeTriggerBlock.utcToLocal = function(utcTime) {
-  const timeParts = utcTime.split(':');
-  const date = new Date();
-  date.setUTCHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10));
-  const lp = TimeTriggerBlock.leftPad;
-  return `${lp(date.getHours())}:${lp(date.getMinutes())}`;
-};
+// TimeTriggerBlock.utcToLocal = function(utcTime) {
+//   const timeParts = utcTime.split(':');
+//   const date = new Date();
+//   date.setUTCHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10));
+//   const lp = TimeTriggerBlock.leftPad;
+//   return `${lp(date.getHours())}:${lp(date.getMinutes())}`;
+// };
 
 /**
  * Convert from a local time string to one in UTC
  * @param {String} localTime - formatted HH:MM
  * @return {String}
  */
-TimeTriggerBlock.localToUTC = function(localTime) {
-  const timeParts = localTime.split(':');
-  const date = new Date();
-  date.setHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10));
-  const lp = TimeTriggerBlock.leftPad;
-  return `${lp(date.getUTCHours())}:${lp(date.getUTCMinutes())}`;
+// TimeTriggerBlock.localToUTC = function(localTime) {
+//   const timeParts = localTime.split(':');
+//   const date = new Date();
+//   date.setHours(parseInt(timeParts[0], 10), parseInt(timeParts[1], 10));
+//   const lp = TimeTriggerBlock.leftPad;
+//   return `${lp(date.getUTCHours())}:${lp(date.getUTCMinutes())}`;
+// };
+
+/**
+ *
+ */
+TimeTriggerBlock.verifyCronTime = function(cronTime) {
+  //TODO: Change text to red if !cron.validate(cronTime)
+  return cronTime
 };
 
 module.exports = TimeTriggerBlock;

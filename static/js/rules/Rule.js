@@ -150,8 +150,7 @@ Rule.prototype.singleTriggerToHumanRepresentation = function(trigger, html) {
   }
 
   if (trigger.type === 'TimeTrigger') {
-    return `the time of day is ${
-      TimeTriggerBlock.utcToLocal(trigger.time)}`;
+    return `${trigger.schedule}`;
   }
 
   if (trigger.type === 'EventTrigger') {

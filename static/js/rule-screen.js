@@ -290,6 +290,7 @@ const RuleScreen = {
       const selectedOption = block.querySelector('.selected');
       if (!selectedOption) {
         return block.querySelector('.time-input') ||
+          block.querySelector('.cron-input') ||
           block.querySelector('.message-input-container');
       }
       return JSON.parse(selectedOption.dataset.ruleFragment);
